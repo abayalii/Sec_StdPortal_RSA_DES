@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        header {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .requests {
+            margin-top: 20px;
+        }
+        .request {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            background-color: #f8f8f8;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Staff Dashboard</h1>
+    </header>
+    <div class="container">
+        <h2>Enter/Update Student Grade Records</h2>
+        <form id="grade-form">
+            <label for="student-number">Student Number:</label>
+            <input type="text" id="student-number" name="student-number" required>
+
+            <label for="student-gpa">GPA:</label>
+            <input type="text" id="student-gpa" name="student-gpa" required>
+
+            <label for="student-cgpa">CGPA:</label>
+            <input type="text" id="student-cgpa" name="student-cgpa" required>
+
+            <button type="submit">Update Records</button>
+        </form>
+
+        <h2>Student Requests</h2>
+        <div class="requests">
+            <div class="request">
+                <p><strong>Student:</strong> John Doe</p>
+                <p><strong>Request Type:</strong> Transcript</p>
+                <p><strong>Status:</strong> Pending</p>
+                <button>Prepare Document</button>
+                <button>Send Invoice</button>
+            </div>
+
+            <div class="request">
+                <p><strong>Student:</strong> Jane Smith</p>
+                <p><strong>Request Type:</strong> Certificate</p>
+                <p><strong>Status:</strong> Invoice Sent</p>
+                <button>Send Document</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

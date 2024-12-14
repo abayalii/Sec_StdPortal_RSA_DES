@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        header {
+            background-color: #6c63ff;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #6c63ff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #514dbf;
+        }
+        .documents, .invoices {
+            margin-top: 20px;
+        }
+        .document, .invoice {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            background-color: #f8f8f8;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Student Dashboard</h1>
+    </header>
+    <div class="container">
+        <h2>Request a Document</h2>
+        <form id="request-document">
+            <label for="document-type">Document Type:</label>
+            <select id="document-type" name="document-type" required>
+                <option value="transcript">Transcript</option>
+                <option value="certificate">Student Certificate</option>
+            </select>
+
+            <button type="submit">Request Document</button>
+        </form>
+
+        <h2>Pending Invoices</h2>
+        <div class="invoices">
+            <div class="invoice">
+                <p><strong>Document:</strong> Transcript</p>
+                <p><strong>Amount:</strong> $50</p>
+                <p><strong>Status:</strong> Pending Payment</p>
+                <label for="receipt-upload">Upload Payment Receipt:</label>
+                <input type="file" id="receipt-upload" name="receipt-upload" accept="image/*" required>
+                <button>Submit Receipt</button>
+            </div>
+        </div>
+
+        <h2>Requested Documents</h2>
+        <div class="documents">
+            <div class="document">
+                <p><strong>Document:</strong> Transcript</p>
+                <p><strong>Status:</strong> Ready for Download</p>
+                <button>Download Document</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

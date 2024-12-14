@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Admin Dashboard</h1>
+    </header>
+    <div class="container">
+        <h2>Add Staff User</h2>
+        <form id="add-staff">
+            <label for="staff-name">Name:</label>
+            <input type="text" id="staff-name" name="staff-name" required>
+
+            <label for="staff-surname">Surname:</label>
+            <input type="text" id="staff-surname" name="staff-surname" required>
+
+            <label for="staff-email">Email:</label>
+            <input type="email" id="staff-email" name="staff-email" required>
+
+            <label for="staff-phone">Phone:</label>
+            <input type="tel" id="staff-phone" name="staff-phone" required>
+
+            <label for="staff-department">Department:</label>
+            <input type="text" id="staff-department" name="staff-department" required>
+
+            <button type="submit">Add Staff</button>
+        </form>
+
+        <h2>Add Student</h2>
+        <form id="add-student">
+            <label for="student-number">Student Number:</label>
+            <input type="text" id="student-number" name="student-number" required>
+
+            <label for="student-name">Name:</label>
+            <input type="text" id="student-name" name="student-name" required>
+
+            <label for="student-surname">Surname:</label>
+            <input type="text" id="student-surname" name="student-surname" required>
+
+            <label for="student-email">Email:</label>
+            <input type="email" id="student-email" name="student-email" required>
+
+            <label for="student-phone">Phone:</label>
+            <input type="tel" id="student-phone" name="student-phone" required>
+
+            <label for="student-department">Department:</label>
+            <input type="text" id="student-department" name="student-department" required>
+
+            <button type="submit">Add Student</button>
+        </form>
+    </div>
+</body>
+</html>
