@@ -1,0 +1,35 @@
+INFO 2024-12-19 19:25:52,626 views Login attempt for username: None
+WARNING 2024-12-19 19:25:52,627 views Missing required fields in login attempt
+DEBUG 2024-12-19 21:08:17,172 views POST data: <QueryDict: {'csrfmiddlewaretoken': ['gUrmZhhFuReibLCKNKgx2x0G7uOlyyiJAbfoqAYGorKupBARQ6Iwj7ofYawOSecR'], 'username': ['alisanabay'], 'password': ['alisan123'], 'des_key': ['baver123']}>
+INFO 2024-12-19 21:08:17,172 views Login attempt for username: None
+WARNING 2024-12-19 21:08:17,173 views Missing required fields in login attempt
+DEBUG 2024-12-19 21:08:26,960 views POST data: <QueryDict: {'csrfmiddlewaretoken': ['huUrg93jLXotzWtxaS4nWsO48OgQ60cyBLItHsKkFxUFNMrEdewmd2cDZuYjqG6G'], 'username': ['alisanabay'], 'password': ['alisan123'], 'des_key': ['baver123']}>
+INFO 2024-12-19 21:08:26,971 views Login attempt for username: None
+WARNING 2024-12-19 21:08:26,972 views Missing required fields in login attempt
+DEBUG 2024-12-19 21:10:14,945 views POST data: <QueryDict: {'csrfmiddlewaretoken': ['huUrg93jLXotzWtxaS4nWsO48OgQ60cyBLItHsKkFxUFNMrEdewmd2cDZuYjqG6G'], 'username': ['alisanabay'], 'password': ['alisan123'], 'des_key': ['baver123']}>
+INFO 2024-12-19 21:10:14,945 views Login attempt for username: alisanabay
+WARNING 2024-12-19 21:10:14,946 views Failed login attempt for username: alisanabay
+DEBUG 2024-12-19 21:10:23,170 views POST data: <QueryDict: {'csrfmiddlewaretoken': ['d0AwUYD4Dq7noFgBLJcWU2Vv4AAJkL1cxhoylhk5x0DzCveIO5EVbCj4VgicErVk'], 'username': ['alisanabay'], 'password': ['alisan123'], 'des_key': ['baver123']}>
+INFO 2024-12-19 21:10:23,172 views Login attempt for username: alisanabay
+WARNING 2024-12-19 21:10:23,174 views Failed login attempt for username: alisanabay
+DEBUG 2024-12-19 21:12:42,818 views POST data: <QueryDict: {'csrfmiddlewaretoken': ['d0AwUYD4Dq7noFgBLJcWU2Vv4AAJkL1cxhoylhk5x0DzCveIO5EVbCj4VgicErVk'], 'username': ['alisanabay'], 'password': ['alisan123'], 'des_key': ['baver123']}>
+INFO 2024-12-19 21:12:42,818 views Login attempt for username: alisanabay
+WARNING 2024-12-19 21:12:42,819 views Failed login attempt for username: alisanabay
+DEBUG 2024-12-19 21:12:51,932 views POST data: <QueryDict: {'csrfmiddlewaretoken': ['mxhLPx4jAlfZDPoWLEv1PY3nVN4wCyNOGO5NgQLkuVLbRFm3O0X06yrWMtMZWeHW'], 'username': ['alisanabay'], 'password': ['alisan123'], 'des_key': ['baver123']}>
+INFO 2024-12-19 21:12:51,932 views Login attempt for username: alisanabay
+WARNING 2024-12-19 21:12:51,933 views Failed login attempt for username: alisanabay
+DEBUG 2024-12-19 21:16:44,603 views POST data: <QueryDict: {'csrfmiddlewaretoken': ['mxhLPx4jAlfZDPoWLEv1PY3nVN4wCyNOGO5NgQLkuVLbRFm3O0X06yrWMtMZWeHW'], 'username': ['alisanabay'], 'password': ['alisan123'], 'des_key': ['baver123']}>
+INFO 2024-12-19 21:16:44,603 views Login attempt for username: alisanabay
+WARNING 2024-12-19 21:16:44,605 views Failed login attempt for username: alisanabay
+DEBUG 2024-12-19 21:16:53,952 views POST data: <QueryDict: {'csrfmiddlewaretoken': ['Xwti39x5tGXkFkyAL8ac42kBHCwisEDihNhkuse6ngtwTawHOuCblCIayieLMkxq'], 'username': ['alisanabay'], 'password': ['alisan123'], 'des_key': ['baver123']}>
+INFO 2024-12-19 21:16:53,952 views Login attempt for username: alisanabay
+WARNING 2024-12-19 21:16:53,955 views Failed login attempt for username: alisanabay
+DEBUG 2024-12-19 21:31:09,400 views POST data: <QueryDict: {'csrfmiddlewaretoken': ['HVikvsuoLhLzNbKrW3x8ZPV7fBaJitWR1c6mWLbpFRhL11IyZpZ7gpjG6hScC9QZ'], 'username': ['alisanabay'], 'password': ['alisan123'], 'des_key': ['baver123']}>
+INFO 2024-12-19 21:31:09,400 views Login attempt for username: alisanabay
+WARNING 2024-12-19 21:31:09,403 views Failed login attempt for username: alisanabay
+DEBUG 2024-12-19 21:45:04,250 views POST data: <QueryDict: {'csrfmiddlewaretoken': ['HVikvsuoLhLzNbKrW3x8ZPV7fBaJitWR1c6mWLbpFRhL11IyZpZ7gpjG6hScC9QZ'], 'username': ['alisanabay'], 'password': ['alisan123'], 'des_key': ['baver123']}>
+INFO 2024-12-19 21:45:04,250 views Login attempt for username: alisanabay
+WARNING 2024-12-19 21:45:04,252 views Failed login attempt for username: alisanabay
+DEBUG 2024-12-19 21:45:22,627 views POST data: <QueryDict: {'csrfmiddlewaretoken': ['j9JEgNqfj5hK6HK5R0JHY9T5O1F3JsjdDqxGH67gdFNWkxIcUmbGfJhEFHnw38dl'], 'username': ['alisanabay'], 'password': ['alisan123'], 'des_key': ['baver123']}>
+INFO 2024-12-19 21:45:22,627 views Login attempt for username: alisanabay
+WARNING 2024-12-19 21:45:22,629 views Failed login attempt for username: alisanabay
