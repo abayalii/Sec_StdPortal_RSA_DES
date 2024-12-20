@@ -33,3 +33,12 @@ WARNING 2024-12-19 21:45:04,252 views Failed login attempt for username: alisana
 DEBUG 2024-12-19 21:45:22,627 views POST data: <QueryDict: {'csrfmiddlewaretoken': ['j9JEgNqfj5hK6HK5R0JHY9T5O1F3JsjdDqxGH67gdFNWkxIcUmbGfJhEFHnw38dl'], 'username': ['alisanabay'], 'password': ['alisan123'], 'des_key': ['baver123']}>
 INFO 2024-12-19 21:45:22,627 views Login attempt for username: alisanabay
 WARNING 2024-12-19 21:45:22,629 views Failed login attempt for username: alisanabay
+DEBUG 2024-12-20 12:02:39,208 views POST data: <QueryDict: {'csrfmiddlewaretoken': ['qNcsGohH4Em66BrxjkPQqqdib1uXDH65K40u7HYIYeSikrpEmGhPH0BR2HcqXn0d'], 'username': ['alisanabay'], 'password': ['alisan123'], 'des_key': ['baver123']}>
+INFO 2024-12-20 12:02:39,209 views Login attempt for username: alisanabay
+WARNING 2024-12-20 12:02:39,214 views Failed login attempt for username: alisanabay
+DEBUG 2024-12-20 14:10:34,152 views POST data: <QueryDict: {'csrfmiddlewaretoken': ['NkBnYjfF78pUZabexQJ1tspMgtLJqhLY7BpppCWG1IV6d09lAcb0K2Nl79tcKXF6'], 'username': ['alisanabay'], 'password': ['alisan123'], 'des_key': ['baver123']}>
+INFO 2024-12-20 14:10:34,152 views Login attempt for username: alisanabay
+ERROR 2024-12-20 14:10:34,152 views Unexpected error during login: Incorrect DES key length (10 bytes)
+DEBUG 2024-12-20 14:11:09,803 views POST data: <QueryDict: {'csrfmiddlewaretoken': ['thEyQA3WIugfdexXjqvWIT1ETDh8nMijNysAhTKXC4Mrr4v4mMXVZtpdKjZBHscr'], 'username': ['alisanabay'], 'password': ['alisan123'], 'des_key': ['baver123']}>
+INFO 2024-12-20 14:11:09,803 views Login attempt for username: alisanabay
+ERROR 2024-12-20 14:11:09,803 views Unexpected error during login: Incorrect DES key length (10 bytes)

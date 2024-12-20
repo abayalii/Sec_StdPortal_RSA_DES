@@ -1,33 +1,26 @@
 from Crypto.Cipher import DES
 from Crypto.Util.Padding import pad, unpad
 import base64
-import os
 
-def validate_des_key(key: str) -> bytes:
-    key = key.encode()
-    if len(key) != 8:
-        raise ValueError("DES key must be exactly 8 bytes long.")
-    return key
 
-def encrypt_des(key: bytes, plaintext: str) -> str:
-    iv = os.urandom(8)  # Generate random IV
-    cipher = DES.new(key, DES.MODE_CBC, iv)
-    padded_text = pad(plaintext.encode(), DES.block_size)
+# Ensure the key is always 8 bytes long (DES requires an 8-byte key)
+def ensure_key_length(key: str) -> str:
+    return key.ljust(8, '\0')[:8]  # Pad to 8 bytes if too short, truncate if too long
+
+
+def encrypt_des(key: str, plaintext: str) -> str:
+    key = ensure_key_length(key)
+    key_bytes = key.encode()
+    cipher = DES.new(key_bytes, DES.MODE_ECB)
+    padded_text = pad(plaintext.encode(), DES.block_size)  # Apply padding to plaintext
     encrypted_text = cipher.encrypt(padded_text)
-    # Combine IV and encrypted text
-    return base64.b64encode(iv + encrypted_text).decode()
+    return base64.b64encode(encrypted_text).decode()
 
-def decrypt_des(key: bytes, encrypted_text: str) -> str:
-    encrypted_data = base64.b64decode(encrypted_text)
-    iv = encrypted_data[:8]  # Extract IV
-    cipher = DES.new(key, DES.MODE_CBC, iv)
-    decrypted_text = unpad(
-        cipher.decrypt(encrypted_data[8:]), 
-        DES.block_size
-    )
+
+def decrypt_des(key: str, encrypted_text: str) -> str:
+    key = ensure_key_length(key)
+    key_bytes = key.encode()
+    cipher = DES.new(key_bytes, DES.MODE_ECB)
+    decoded_encrypted_text = base64.b64decode(encrypted_text)
+    decrypted_text = unpad(cipher.decrypt(decoded_encrypted_text), DES.block_size)  # Remove padding
     return decrypted_text.decode()
-
-
-
-
-

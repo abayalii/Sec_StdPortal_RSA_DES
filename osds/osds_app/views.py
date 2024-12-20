@@ -1,77 +1,70 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from .utils.des import decrypt_des
+from .utils.des import decrypt_des,encrypt_des
 from .models import Users
 
 
-
-import logging
-logger=logging.getLogger('osds_app')
-
-# Create your views here.
-
 def login(request):
     
-    if request.method == "POST":
-        logger.debug(f"POST data: {request.POST}")
-        username = request.POST.get("username")
-        password = request.POST.get("password")
-        des_key = request.POST.get("des_key")
-        
-        logger.info(f"Login attempt for username: {username}")
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        des_key = request.POST.get('des_key')
         
         if not all([username, password, des_key]):
-            logger.warning("Missing required fields in login attempt")
-            messages.error(request, "All fields are required")
-            return render(request, "login.html")
-
+            
+            return render(request, "login.html",{"error": "Lütfen tüm alanları doldurun."})
         
         try:
-            users=Users.objects.all()
-            for user in users:
-                try:
-                    decrypted_username = decrypt_des(des_key.encode(), user.username)
-                    if decrypted_username == username:
-                        decrypted_password = decrypt_des(des_key.encode(), user.password)
-                        if decrypted_password == password:
-                            logger.info(f"Successful login for user: {username} with role: {user.role}")
-                            request.session['des_key'] = des_key
-                            request.session['user_id'] = user.id
-                            request.session['role'] = user.role
-                            if user.role == 'admin':
-                                return redirect('admin')
-                            elif user.role == 'student':
-                                return redirect('student')
-                            else:
-                                return redirect('staff')
+            encrypted_username = encrypt_des(des_key, username)
+            print(f"Encrypted Username: {encrypted_username}")
             
-                except Exception as e:
-                    logger.error(f"Decryption error for user {user.id}: {str(e)}")
-                    continue
+            user=Users.objects.get(username=encrypted_username)
+            
+            encrypted_password= encrypt_des(des_key,password)
+            
+            print(f"Encrypted Password (Login): {encrypted_password}")
+            print(f"Database Password (Encrypted): {user.password}")
+            
+            
+            
+            if (user.username==encrypted_username) and (user.password==encrypted_password):
+                decrypted_role=decrypt_des(des_key,user.role)
+                print(f"Decrypted Role: {decrypted_role}")
+                
+                request.session['id'] = user.id
+                request.session['username'] = user.username 
+                print(f"Session ID: {request.session.get('id')}")
+                print(f"Session Username: {request.session.get('username')}")
+                
+                if decrypted_role == "admin":
+                  return redirect("admin")
+                elif decrypted_role == "staff":
+                   return redirect("staff")
+                elif decrypted_role=="student":
+                    return redirect("student")
+                else:
+                    return render(request,"login.html",{"error":"no match role"})
+                   
+        except Users.DoesNotExist:
+            return render(request, "login.html", {"error": "Kullanıcı bulunamadı."})
         
-
-            logger.warning(f"Failed login attempt for username: {username}")
-            messages.error(request, "Invalid credentials")
-            return render(request, "login.html")
-
-        except Exception as e:
-            logger.error(f"Unexpected error during login: {str(e)}")
-            messages.error(request, "An error occurred")
-            return render(request, "login.html")
-
     return render(request, "login.html")
-   
 
 
-@login_required
+
+
+
 def admin(request):
-    logger.debug(f"Session data: {request.session}")
-    if request.session.get('role') != 'admin':
-        return redirect('login')
-    return render(request, "admin.html")
+    id = request.session.get('id')  # Oturumdaki kullanıcı ID'sini al
+    username = request.session.get('username')  # Oturumdaki kullanıcı adını al
+    print(f"Admin Page Accessed by User: {username} (ID: {id})")
+    
+    if not id:
+        return redirect("login")  # Kullanıcı oturum açmamışsa login sayfasına yönlendirme
 
+    
+    return render(request, "admin.html",{"username": username})
 
 def student(request):
     
@@ -81,3 +74,9 @@ def student(request):
 def staff(request):
     
     return render(request, "staff.html")
+
+
+def logout(request):
+    # Oturum verilerini temizle
+    request.session.flush()
+    return redirect("login")
