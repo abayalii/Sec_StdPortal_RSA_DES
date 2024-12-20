@@ -64,44 +64,62 @@
     </header>
     <div class="container">
         <h2>Add Staff User</h2>
-        <form id="add-staff">
+        <form id="add-staff" method="POST" action="{%url 'add_staff' %}">
+            {% csrf_token %}
+            <label for="staff-username">Username:</label>
+            <input type="text"  name="staff-username" required>
+
             <label for="staff-name">Name:</label>
-            <input type="text" id="staff-name" name="staff-name" required>
+            <input type="text"  name="staff-name" required>
 
             <label for="staff-surname">Surname:</label>
-            <input type="text" id="staff-surname" name="staff-surname" required>
+            <input type="text"  name="staff-surname" required>
+
+            <label for="staff-password">Password:</label>
+            <input type="password"  name="staff-password" required>
 
             <label for="staff-email">Email:</label>
-            <input type="email" id="staff-email" name="staff-email" required>
+            <input type="email" name="staff-email" >
 
             <label for="staff-phone">Phone:</label>
-            <input type="tel" id="staff-phone" name="staff-phone" required>
+            <input type="tel"  name="staff-phone" >
 
             <label for="staff-department">Department:</label>
-            <input type="text" id="staff-department" name="staff-department" required>
+            <input type="text"  name="staff-department" required>
+
+            <input type="hidden" name="des_key" value="{{ request.session.des_key }}">
 
             <button type="submit">Add Staff</button>
         </form>
 
         <h2>Add Student</h2>
-        <form id="add-student">
+        <form id="add-student" method="POST" action="{%url 'add_student' %}">
+            {% csrf_token %}
             <label for="student-number">Student Number:</label>
-            <input type="text" id="student-number" name="student-number" required>
+            <input type="text"  name="student-number" required>
+
+            <label for="student-username">Username:</label>
+            <input type="text"  name="student-username" required>
 
             <label for="student-name">Name:</label>
-            <input type="text" id="student-name" name="student-name" required>
+            <input type="text"  name="student-name" required>
 
             <label for="student-surname">Surname:</label>
-            <input type="text" id="student-surname" name="student-surname" required>
+            <input type="text"  name="student-surname" required>
+
+            <label for="student-password">Password:</label>
+            <input type="password"  name="student-password" required>
 
             <label for="student-email">Email:</label>
-            <input type="email" id="student-email" name="student-email" required>
+            <input type="email"  name="student-email" >
 
             <label for="student-phone">Phone:</label>
-            <input type="tel" id="student-phone" name="student-phone" required>
+            <input type="tel"  name="student-phone" >
 
             <label for="student-department">Department:</label>
-            <input type="text" id="student-department" name="student-department" required>
+            <input type="text"  name="student-department" required>
+
+            <input type="hidden" name="des_key" value="{{ request.session.des_key }}">
 
             <button type="submit">Add Student</button>
         </form>
