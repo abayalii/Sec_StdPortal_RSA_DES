@@ -3,8 +3,8 @@ from django.db import models
 
 class Users(models.Model):
     
-    username = models.CharField(max_length=30)
-    student_number = models.CharField(max_length=30, null=True, blank=True)
+    username = models.CharField(max_length=30, unique=True)
+    student_number = models.CharField(max_length=30, null=True, blank=True,unique=True)
     name=models.CharField(max_length=30)
     surname=models.CharField(max_length=30)
     password = models.CharField(max_length=128)
@@ -24,7 +24,8 @@ class Documents(models.Model):
     student = models.ForeignKey(Users, on_delete=models.CASCADE)
     document_type = models.CharField(max_length=30)
     request_date = models.DateTimeField(auto_now_add=True)
-    gpa = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
+    status = models.CharField(max_length=30, default='Pending')
+    gpa_list = models.JSONField(null=True, blank=True)  # Store GPA values as a JSON array
     cpga = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     
     def __str__(self):

@@ -201,8 +201,19 @@ def add_student(request):
 
 @role_required(['student'])
 def student(request):
+    id = request.session.get('id')  # Oturumdaki kullanıcı ID'sini al
+    username = request.session.get('username')# Oturumdaki kullanıcı adını al
     
-    return render(request, "student.html")
+    
+    print(f"Student Page Accessed by User: {username} (ID: {id})")
+    
+    if not id:
+        return redirect("login")  # Kullanıcı oturum açmamışsa login sayfasına yönlendirme
+    
+    
+
+    
+    return render(request, "student.html",{"username": username})
 
 
 @role_required(['staff'])
