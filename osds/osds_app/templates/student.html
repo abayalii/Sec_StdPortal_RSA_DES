@@ -74,12 +74,15 @@
     </header>
     <div class="container">
         <h2>Request a Document</h2>
-        <form id="request-document">
+        <form id="request-document" method="POST" action="{%url 'request_document'%}">
+            {% csrf_token %}
             <label for="document-type">Document Type:</label>
             <select id="document-type" name="document-type" required>
                 <option value="transcript">Transcript</option>
                 <option value="certificate">Student Certificate</option>
             </select>
+
+            <input type="hidden" name="des_key" value="{{ request.session.des_key }}">
 
             <button type="submit">Request Document</button>
         </form>
@@ -92,6 +95,7 @@
                 <p><strong>Status:</strong> Pending Payment</p>
                 <label for="receipt-upload">Upload Payment Receipt:</label>
                 <input type="file" id="receipt-upload" name="receipt-upload" accept="image/*" required>
+                <input type="hidden" name="des_key" value="{{ request.session.des_key }}">
                 <button>Submit Receipt</button>
             </div>
         </div>

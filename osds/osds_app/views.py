@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from .utils.des import decrypt_des,encrypt_des
-from .models import Users
+from .models import Users, Documents
 
 
 
@@ -210,16 +210,100 @@ def student(request):
     if not id:
         return redirect("login")  # Kullanıcı oturum açmamışsa login sayfasına yönlendirme
     
-    
-
-    
     return render(request, "student.html",{"username": username})
 
+@role_required(['student'])
+def request_document(request):
+    if request.method == 'POST':
+        des_key = request.POST.get('des_key')
+        if not des_key:
+            print("des key not found")
+            return render(request, "student.html", {"error": "DES key is required to encrypt data."})
+        
+        document_type = request.POST.get('document-type')
+        student_id = request.session.get('id')# Logged-in student's ID
+        print(f"Document Type: {document_type}, Student ID: {student_id}")
+        
+        try:
+            student = Users.objects.get(id=student_id)
+
+            # Encrypt document request details
+            encrypted_document_type = encrypt_des(des_key, document_type)
+            encrypted_status = encrypt_des(des_key, "Pending")
+            print(f"Encrypted Document Type: {encrypted_document_type}, Status: {encrypted_status}")
+            document=Documents.objects.create(
+                student=student,
+                document_type=encrypted_document_type,
+                status=encrypted_status
+            )
+            print(f"Document {document.id} created successfully")
+
+            return render(request, "student.html", {"success": "Document request submitted successfully!"})
+            
+        except Users.DoesNotExist:
+            return render(request, "student.html", {"error": "Student not found."})
+        except Exception as e:
+            return render(request, "student.html", {"error": f"Error submitting request: {e}"})
+            
+    
+    return redirect('student')
+
+@role_required(['student'])
+def submit_receipt(request):
+    
+    return redirect('student')
 
 @role_required(['staff'])
 def staff(request):
     
     return render(request, "staff.html")
+
+@role_required(['staff'])
+def pending_requests(request):
+    des_key = request.session.get('des_key')
+    print(f"DES Key from session: {des_key}")
+    if not des_key:
+        return render(request, "staff.html", {"error": "DES key is required to decrypt data."})
+
+    try:
+        encrypted_pending_status = encrypt_des(des_key, "Pending")
+        print(f"Encrypted status for 'Pending': {encrypted_pending_status}")
+        
+        pending_requests = Documents.objects.filter(status=encrypted_pending_status)
+        print(f"Fetched {len(pending_requests)} pending requests.")
+        
+        if request.method == 'POST':
+            # Handle document preparation or invoice sending
+            action = request.POST.get('action')
+            request_id = request.POST.get('request_id')
+            
+            if action == 'prepare':
+                # Add logic for preparing document
+                pass
+            elif action == 'invoice':
+                # Add logic for sending invoice
+                pass
+
+        decrypted_requests = []
+        for req in pending_requests:
+            student = req.student  # Fetch the related student object via ForeignKey
+
+            decrypted_requests.append({
+                "student_name": decrypt_des(des_key, student.name),
+                "student_surname": decrypt_des(des_key, student.surname),
+                "student_number": decrypt_des(des_key, student.student_number),
+                "document_type": decrypt_des(des_key, req.document_type),
+                "status": decrypt_des(des_key, req.status),
+                "request_date": req.request_date.strftime('%Y-%m-%d %H:%M:%S'),
+                "id": req.id  # Include request ID for further actions
+            })
+        print(f"Decrypted Requests: {decrypted_requests}")
+
+        return render(request, "staff.html", {"requests": decrypted_requests})
+    except Exception as e:
+        print(f"Error: {e}")
+        return render(request, "staff.html", {"error": f"Error fetching pending requests: {e}"})
+    return redirect('staff')
 
 
 def logout(request):

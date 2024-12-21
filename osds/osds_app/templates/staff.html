@@ -88,22 +88,37 @@
         </form>
 
         <h2>Student Requests</h2>
+        <form method="GET" action="{% url 'pending_requests' %}" style="margin-bottom: 20px;">
+            <button type="submit">Load Pending Requests</button>
+        </form>
         <div class="requests">
-            <div class="request">
-                <p><strong>Student:</strong> John Doe</p>
-                <p><strong>Request Type:</strong> Transcript</p>
-                <p><strong>Status:</strong> Pending</p>
-                <button>Prepare Document</button>
-                <button>Send Invoice</button>
-            </div>
-
-            <div class="request">
-                <p><strong>Student:</strong> Jane Smith</p>
-                <p><strong>Request Type:</strong> Certificate</p>
-                <p><strong>Status:</strong> Invoice Sent</p>
-                <button>Send Document</button>
-            </div>
+            {% if requests %}
+                {% for request in requests %}
+                    <div class="request">
+                        <form id="pending_requests" method="POST" action="{%url 'pending_requests' %}">
+                            {% csrf_token %}
+                            <p><strong>Student Name:</strong> {{ request.student_name }} {{ request.student_surname }}</p>
+                            <p><strong>Student Number:</strong> {{ request.student_number }}</p>
+                            <p><strong>Request Type:</strong> {{ request.document_type }}</p>
+                            <p><strong>Status:</strong> {{ request.status }}</p>
+                            <p><strong>Request Date:</strong> {{ request.request_date }}</p>
+                        <!-- <input type="hidden" name="des_key" value="{{ request.session.des_key }}">-->
+                            <input type="hidden" name="request_id" value="{{ request.id }}">   
+                            <button type="submit" name="action" value="prepare">Prepare Document</button>
+                            <button type="submit" name="action" value="invoice">Send Invoice</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No pending requests at the moment.</p>
+            {% endif %}
+            {% if error %}
+                <div class="error" style="color: red; margin-top: 10px;">
+                    {{ error }}
+                </div>
+            {% endif %}
         </div>
+
     </div>
 </body>
 </html>

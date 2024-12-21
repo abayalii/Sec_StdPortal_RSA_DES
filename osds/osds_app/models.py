@@ -22,7 +22,7 @@ class Users(models.Model):
 class Documents(models.Model):
   
     student = models.ForeignKey(Users, on_delete=models.CASCADE)
-    document_type = models.CharField(max_length=30)
+    document_type = models.CharField(max_length=30,default='transcript')
     request_date = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=30, default='Pending')
     gpa_list = models.JSONField(null=True, blank=True)  # Store GPA values as a JSON array
