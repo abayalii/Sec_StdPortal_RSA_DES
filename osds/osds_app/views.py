@@ -276,6 +276,7 @@ def pending_requests(request):
             # Handle document preparation or invoice sending
             action = request.POST.get('action')
             request_id = request.POST.get('request_id')
+            print(f"request id:{request_id}")
             
             if action == 'prepare':
                 # Add logic for preparing document

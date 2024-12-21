@@ -32,7 +32,13 @@ class Documents(models.Model):
         return f"{self.document_type} - {self.student.username}"
     
 
- 
+
+class Rsa(models.Model):
+    public_key=models.CharField(max_length=200)
+    private_key=models.CharField(max_length=200)
+    
+    def __str__(self):
+        return f"{self.public_key} - {self.private_key}"
  
 
     
