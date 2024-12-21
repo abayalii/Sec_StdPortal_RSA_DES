@@ -2,8 +2,9 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
 from cryptography.hazmat.primitives.hashes import SHA256
 from cryptography.hazmat.primitives.serialization import (
-    PrivateFormat, PublicFormat, Encoding, NoEncryption
+    PrivateFormat, PublicFormat, Encoding, NoEncryption, load_pem_private_key, load_pem_public_key
 )
+
 import base64
 
 def generate_rsa_key_pair():
@@ -28,9 +29,9 @@ def generate_rsa_key_pair():
 
 def rsa_sign(data, private_key_pem):
     """
-    Veriyi RSA ile imzalar.
+    Signs the data using RSA private key.
     """
-    private_key = rsa.load_pem_private_key(private_key_pem.encode('utf-8'), password=None)
+    private_key = load_pem_private_key(private_key_pem.encode('utf-8'), password=None)
     signature = private_key.sign(
         data.encode('utf-8'),
         PKCS1v15(),
@@ -40,9 +41,9 @@ def rsa_sign(data, private_key_pem):
 
 def rsa_verify(data, signature, public_key_pem):
     """
-    RSA imzasını doğrular.
+    Verifies the RSA signature.
     """
-    public_key = rsa.load_pem_public_key(public_key_pem.encode('utf-8'))
+    public_key = load_pem_public_key(public_key_pem.encode('utf-8'))
     signature = base64.b64decode(signature.encode('utf-8'))
     try:
         public_key.verify(
@@ -52,5 +53,6 @@ def rsa_verify(data, signature, public_key_pem):
             SHA256()
         )
         return True
-    except Exception:
+    except Exception as e:
+        print(f"Verification failed: {e}")
         return False

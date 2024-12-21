@@ -1,7 +1,13 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from .utils.des import decrypt_des,encrypt_des
-from .models import Users, Documents
+from .utils.rsa import rsa_sign,rsa_verify,generate_rsa_key_pair
+from django.http import FileResponse
+from django.core.files.storage import FileSystemStorage
+from .models import Users, Documents,Rsa
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+import io
 
 
 
@@ -140,7 +146,7 @@ def add_staff(request):
             return render(request, "admin.html", {"error": f"Error adding staff: {e}"})
     return redirect("admin")
 
-@role_required(['admin'])  # Only admins can add staff
+@role_required(['admin'])  # Only admins can add student
 def add_student(request):
     if request.method == 'POST':
         des_key = request.POST.get('des_key')
@@ -203,6 +209,30 @@ def add_student(request):
 def student(request):
     id = request.session.get('id')  # Oturumdaki kullanıcı ID'sini al
     username = request.session.get('username')# Oturumdaki kullanıcı adını al
+    des_key = request.session.get('des_key')
+    print(f"DES Key from session: {des_key}")
+    if not des_key:
+        return render(request, "staff.html", {"error": "DES key is required to decrypt data."})
+
+    try:
+        # Fetch the invoices for the student
+        invoices = Documents.objects.filter(student_id=id).exclude(invoice_file__isnull=True)  # Assuming invoice field in Documents
+        print(f"Number of invoices found: {invoices.count()}")
+        decrypted_invoices = []
+
+        for invoice in invoices:
+            decrypted_invoices.append({
+                "document_type": decrypt_des(des_key, invoice.document_type),
+                "url": invoice.invoice.url  # Assuming FileField for invoices
+            })
+
+        return render(request, "student.html", {
+            "username": username,
+            "invoices": decrypted_invoices
+        })
+    except Exception as e:
+        print(f"Error fetching invoices: {e}")
+        return render(request, "student.html", {"error": "Error fetching invoices."})
     
     
     print(f"Student Page Accessed by User: {username} (ID: {id})")
@@ -260,51 +290,123 @@ def staff(request):
 
 @role_required(['staff'])
 def pending_requests(request):
-    des_key = request.session.get('des_key')
-    print(f"DES Key from session: {des_key}")
-    if not des_key:
-        return render(request, "staff.html", {"error": "DES key is required to decrypt data."})
+        des_key = request.session.get('des_key')
+        print(f"DES Key from session: {des_key}")
+        if not des_key:
+            return render(request, "staff.html", {"error": "DES key is required to decrypt data."})
 
-    try:
-        encrypted_pending_status = encrypt_des(des_key, "Pending")
-        print(f"Encrypted status for 'Pending': {encrypted_pending_status}")
-        
-        pending_requests = Documents.objects.filter(status=encrypted_pending_status)
-        print(f"Fetched {len(pending_requests)} pending requests.")
-        
-        if request.method == 'POST':
-            # Handle document preparation or invoice sending
-            action = request.POST.get('action')
-            request_id = request.POST.get('request_id')
-            print(f"request id:{request_id}")
+        try:
+            encrypted_pending_status = encrypt_des(des_key, "Pending")
+            print(f"Encrypted status for 'Pending': {encrypted_pending_status}")
             
-            if action == 'prepare':
-                # Add logic for preparing document
-                pass
-            elif action == 'invoice':
-                # Add logic for sending invoice
-                pass
+            pending_requests = Documents.objects.filter(status=encrypted_pending_status)
+            print(f"Fetched {len(pending_requests)} pending requests.")
+            
+            if request.method == 'POST':
+                # Handle document preparation or invoice sending
+                action = request.POST.get('action')
+                request_id = request.POST.get('request_id')
+                print(f"request id:{request_id}")
+                
+                if action == 'prepare':
+                    # Add logic for preparing document
+                    pass
+                elif action == 'invoice':
+                    try:
+                        document = Documents.objects.get(id=request_id)
+                        print(f"Document found: {document.id}, Type={repr(document.document_type)}")
+                        student = document.student
+                        
+                    
+                        # Determine price
+                        if document.document_type == encrypt_des(des_key,"transcript"):
+                            print(f"document type:{document.document_type}")
+                            price = 200
+                        elif document.document_type == encrypt_des(des_key,"certificate"):
+                            print(f"document type:{document.document_type}")
+                            price = 50
+                        else:
+                            price = 100  # Default price
+                        
+                        # Fetch RSA private key
+                        rsa_keys = Rsa.objects.first()# Adjust as needed
+                        if not rsa_keys:
+                            private_key, public_key = generate_rsa_key_pair()
+                            rsa_keys = Rsa.objects.create(
+                                private_key=private_key,
+                                public_key=public_key
+                            )
+                        private_key = rsa_keys.private_key
+                        
+                        # Generate invoice
+                        buffer = generate_invoice(
+                            student_name=decrypt_des(des_key, student.name),
+                            student_surname=decrypt_des(des_key, student.surname),
+                            student_number=decrypt_des(des_key, student.student_number),
+                            document_type=decrypt_des(des_key, document.document_type),
+                            price=price,
+                            private_key=private_key
+                        )
+                        
+                        # Save invoice to a file
+                        fs = FileSystemStorage()
+                        filename = f"invoice_{document.id}.pdf"
+                        file_path = fs.save(f"invoices/{filename}", buffer)
+                        document.invoice_file = file_path
+                        document.save()  # Save the file reference to the database
+                        
+                        # Update database or notify student as needed
+                        
+                        return render(request, "staff.html", {"message": "Invoice sent successfully."})
+                    except Documents.DoesNotExist:
+                        print(f"Document with ID {request_id} does not exist.")
+                        return render(request, "staff.html", {"error": "Document not found."})
+                
+            decrypted_requests = []
+            for req in pending_requests:
+                student = req.student  # Fetch the related student object via ForeignKey
 
-        decrypted_requests = []
-        for req in pending_requests:
-            student = req.student  # Fetch the related student object via ForeignKey
+                decrypted_requests.append({
+                    "student_name": decrypt_des(des_key, student.name),
+                    "student_surname": decrypt_des(des_key, student.surname),
+                    "student_number": decrypt_des(des_key, student.student_number),
+                    "document_type": decrypt_des(des_key, req.document_type),
+                    "status": decrypt_des(des_key, req.status),
+                    "request_date": req.request_date.strftime('%Y-%m-%d %H:%M:%S'),
+                    "id": req.id  # Include request ID for further actions
+                })
+            print(f"Decrypted Requests: {decrypted_requests}")
 
-            decrypted_requests.append({
-                "student_name": decrypt_des(des_key, student.name),
-                "student_surname": decrypt_des(des_key, student.surname),
-                "student_number": decrypt_des(des_key, student.student_number),
-                "document_type": decrypt_des(des_key, req.document_type),
-                "status": decrypt_des(des_key, req.status),
-                "request_date": req.request_date.strftime('%Y-%m-%d %H:%M:%S'),
-                "id": req.id  # Include request ID for further actions
-            })
-        print(f"Decrypted Requests: {decrypted_requests}")
+            return render(request, "staff.html", {"requests": decrypted_requests})
+        except Exception as e:
+            print(f"Error: {e}")
+            return render(request, "staff.html", {"error": f"Error fetching pending requests: {e}"})
 
-        return render(request, "staff.html", {"requests": decrypted_requests})
-    except Exception as e:
-        print(f"Error: {e}")
-        return render(request, "staff.html", {"error": f"Error fetching pending requests: {e}"})
-    return redirect('staff')
+
+def generate_invoice(student_name, student_surname, student_number, document_type, price, private_key):
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    c.setFont("Helvetica", 12)
+    c.drawString(100, 750, "Invoice")
+    c.drawString(100, 730, f"Student Name: {student_name} {student_surname}")
+    c.drawString(100, 710, f"Student Number: {student_number}")
+    c.drawString(100, 690, f"Document Type: {document_type}")
+    c.drawString(100, 670, f"Price: ${price}")
+    
+    # Generate signature
+    data = f"{student_name} {student_surname} {student_number} {document_type} {price}"
+    signature = rsa_sign(data, private_key)
+    c.drawString(100, 650, f"Digital Signature: {signature[:60]}...")
+    
+    c.save()
+    buffer.seek(0)
+    return buffer
+
+    
+    
+    
+    
+  
 
 
 def logout(request):

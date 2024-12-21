@@ -87,17 +87,19 @@
             <button type="submit">Request Document</button>
         </form>
 
-        <h2>Pending Invoices</h2>
+        
         <div class="invoices">
-            <div class="invoice">
-                <p><strong>Document:</strong> Transcript</p>
-                <p><strong>Amount:</strong> $50</p>
-                <p><strong>Status:</strong> Pending Payment</p>
-                <label for="receipt-upload">Upload Payment Receipt:</label>
-                <input type="file" id="receipt-upload" name="receipt-upload" accept="image/*" required>
-                <input type="hidden" name="des_key" value="{{ request.session.des_key }}">
-                <button>Submit Receipt</button>
-            </div>
+        <h2> Pending Invoices</h2>
+            {% if invoices %}
+                {% for invoice in invoices %}
+                    <div>
+                        <p>Document: {{ invoice.document_type }}</p>
+                        <a href="{{ invoice.url }}" target="_blank">Download Invoice</a>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No invoices available.</p>
+            {% endif %}
         </div>
 
         <h2>Requested Documents</h2>

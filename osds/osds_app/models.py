@@ -23,6 +23,7 @@ class Documents(models.Model):
   
     student = models.ForeignKey(Users, on_delete=models.CASCADE)
     document_type = models.CharField(max_length=30,default='transcript')
+    invoice_file = models.FileField(upload_to='documents/',null=True,blank=True)
     request_date = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=30, default='Pending')
     gpa_list = models.JSONField(null=True, blank=True)  # Store GPA values as a JSON array
