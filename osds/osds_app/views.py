@@ -20,7 +20,7 @@ def login(request):
         
         if not all([username, password, des_key]):
             
-            return render(request, "login.html",{"error": "Lütfen tüm alanları doldurun."})
+            return render(request, "login.html",{"error": "fill all balnks"})
         
         try:
             encrypted_username = encrypt_des(des_key, username)
@@ -58,7 +58,7 @@ def login(request):
                     return render(request,"login.html",{"error":"no match role"})
                    
         except Users.DoesNotExist:
-            return render(request, "login.html", {"error": "Kullanıcı bulunamadı."})
+            return render(request, "login.html", {"error": "USER NOT FOUND"})
         
     return render(request, "login.html")
 
@@ -357,6 +357,92 @@ def submit_receipt(request):
 def staff(request):
     
     return render(request, "staff.html")
+
+@role_required(['staff'])
+def update_des_key(request):
+    if request.method == 'POST':
+        old_des_key = request.session.get('des_key')
+        new_des_key = request.POST.get('new_des_key')
+        
+        if not old_des_key or not new_des_key:
+            return render(request, "staff.html", {"error": "Both old and new DES keys are required."})
+            
+        try:
+            # Get all documents that need updating
+            documents = Documents.objects.all()
+            users = Users.objects.all()
+            
+            print(f"Starting DES key update process...")
+            print(f"Found {len(documents)} documents and {len(users)} users to update")
+            
+            # Update documents
+            for doc in documents:
+                if doc.document_type:
+                    # Decrypt with old key and encrypt with new key
+                    decrypted_type = decrypt_des(old_des_key, doc.document_type)
+                    doc.document_type = encrypt_des(new_des_key, decrypted_type)
+                
+                if doc.status:
+                    decrypted_status = decrypt_des(old_des_key, doc.status)
+                    doc.status = encrypt_des(new_des_key, decrypted_status)
+                
+                doc.save()
+                print(f"Updated document ID: {doc.id}")
+            
+            # Update users
+            for user in users:
+                if user.name:
+                    decrypted_name = decrypt_des(old_des_key, user.name)
+                    user.name = encrypt_des(new_des_key, decrypted_name)
+                
+                if user.surname:
+                    decrypted_surname = decrypt_des(old_des_key, user.surname)
+                    user.surname = encrypt_des(new_des_key, decrypted_surname)
+                
+                if user.username:
+                    decrypted_username = decrypt_des(old_des_key, user.username)
+                    user.username = encrypt_des(new_des_key, decrypted_username)
+                
+                if user.password:
+                    decrypted_password = decrypt_des(old_des_key, user.password)
+                    user.password = encrypt_des(new_des_key, decrypted_password)
+                
+                if user.role:
+                    decrypted_role = decrypt_des(old_des_key, user.role)
+                    user.role = encrypt_des(new_des_key, decrypted_role)
+                
+                if user.mail:
+                    decrypted_mail = decrypt_des(old_des_key, user.mail)
+                    user.mail = encrypt_des(new_des_key, decrypted_mail)
+                
+                if user.phone:
+                    decrypted_phone = decrypt_des(old_des_key, user.phone)
+                    user.phone = encrypt_des(new_des_key, decrypted_phone)
+                
+                if user.department:
+                    decrypted_dept = decrypt_des(old_des_key, user.department)
+                    user.department = encrypt_des(new_des_key, decrypted_dept)
+                
+                if user.student_number:
+                    decrypted_student_number = decrypt_des(old_des_key, user.student_number)
+                    user.student_number = encrypt_des(new_des_key, decrypted_student_number)
+                
+                user.save()
+                print(f"Updated user ID: {user.id}")
+            
+            # Update session DES key
+            request.session['des_key'] = new_des_key
+            print("DES key update completed successfully")
+            
+            return render(request, "staff.html", {"success": "DES key updated successfully. All data has been re-encrypted."})
+            
+        except Exception as e:
+            print(f"Error during DES key update: {str(e)}")
+            return render(request, "staff.html", {
+                "error": f"Error updating DES key: {str(e)}. Please ensure all data is restored from backup."
+            })
+    
+    return redirect('staff')
 
 @role_required(['staff'])
 def pending_requests(request):

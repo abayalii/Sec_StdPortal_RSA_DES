@@ -73,6 +73,18 @@
         <h1>Staff Dashboard</h1>
     </header>
     <div class="container">
+        <!-- Add DES Key Update Form -->
+        <div class="des-key-update">
+            <h2>Update DES Key</h2>
+            <form method="POST" action="{% url 'update_des_key' %}" class="des-key-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="new_des_key">New DES Key:</label>
+                    <input type="text" id="new_des_key" name="new_des_key" required>
+                </div>
+                <button type="submit" class="btn btn-warning">Update DES Key</button>
+            </form>
+        </div>
         <h2>Enter/Update Student Grade Records</h2>
         <form id="grade-form">
             <label for="student-number">Student Number:</label>
