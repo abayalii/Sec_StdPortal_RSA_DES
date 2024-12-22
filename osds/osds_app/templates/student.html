@@ -89,16 +89,31 @@
 
         
         <div class="invoices">
-        <h2> Pending Invoices</h2>
             {% if invoices %}
                 {% for invoice in invoices %}
-                    <div>
-                        <p>Invoice for : {{ invoice.document_type }}</p>
-                        <a href="{{ invoice.url }}" target="_blank">Download Invoice</a>
+                <div class="invoice-card">
+                    <h3>Invoice Type: {{ invoice.document_type }}</h3>
+                    <p>Status: <strong>{{ invoice.status }}</strong></p>
+                    
+                    <div class="actions">
+                        {% if invoice.status == "Not Verified" %}
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="document_id" value="{{ invoice.id }}">
+                                <button type="submit" class="btn btn-primary">Verify Document</button>
+                            </form>
+                        {% else %}
+                            {% if invoice.url %}
+                                <a href="{{ invoice.url }}" class="btn btn-success" download>
+                                    Download Invoice
+                                </a>
+                            {% endif %}
+                        {% endif %}
                     </div>
+                </div>
                 {% endfor %}
             {% else %}
-                <p>No invoices available.</p>
+                <p>No invoices found.</p>
             {% endif %}
         </div>
 

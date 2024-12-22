@@ -20,7 +20,6 @@ class Users(models.Model):
 
     
 class Documents(models.Model):
-  
     student = models.ForeignKey(Users, on_delete=models.CASCADE)
     document_type = models.CharField(max_length=30,default='transcript')
     invoice_file = models.FileField(upload_to='./documents/invoices/',null=True,blank=True)
@@ -28,6 +27,9 @@ class Documents(models.Model):
     status = models.CharField(max_length=30, default='Pending')
     gpa_list = models.JSONField(null=True, blank=True)  # Store GPA values as a JSON array
     cpga = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
+    signature = models.TextField(null=True)  # Store the signature
+    signature_data = models.TextField(null=True)  # Store the data that was signed
+    is_verified = models.BooleanField(default=False)  # Flag for verification status
     
     def __str__(self):
         return f"{self.document_type} - {self.student.username}"

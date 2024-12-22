@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 from .utils.des import decrypt_des,encrypt_des
 from .utils.rsa import rsa_sign,rsa_verify,generate_rsa_key_pair
 from django.http import FileResponse
@@ -215,21 +215,91 @@ def student(request):
         return render(request, "staff.html", {"error": "DES key is required to decrypt data."})
 
     try:
+        print(f"Fetching invoices for student ID: {id}")
         # Fetch the invoices for the student
         invoices = Documents.objects.filter(student_id=id).exclude(invoice_file__isnull=True)  # Assuming invoice field in Documents
         print(f"Number of invoices found: {invoices.count()}")
         decrypted_invoices = []
 
         for invoice in invoices:
+            print(f"Processing invoice ID: {invoice.id}")
+            print(f"Invoice file path: {invoice.invoice_file.name if invoice.invoice_file else 'No file'}")
+            print(f"Document type: {invoice.document_type}")
+            print(f"Signature present: {'Yes' if invoice.signature else 'No'}")
+            print(f"Signature data present: {'Yes' if invoice.signature_data else 'No'}")
+            
             decrypted_invoices.append({
+                "id": invoice.id,
                 "document_type": decrypt_des(des_key, invoice.document_type),
-                "url": invoice.invoice_file.url  # Assuming FileField for invoices
+                "status": "Verified" if invoice.is_verified else "Not Verified",
+                "url": invoice.invoice_file.url,  # Assuming FileField for invoices
+                "signature": invoice.signature,  # Add signature
+                "signature_data": invoice.signature_data # Add signature data
             })
+        
+        if request.method == 'POST':
+            # Handle form submission for verification
+            document_id = request.POST.get('document_id')
+            print(f"Verification requested for document ID: {document_id}")
+            signature = request.POST.get('signature')
+            signature_data = request.POST.get('signature_data')
 
+            try:
+                document = Documents.objects.get(id=document_id)
+
+                # Fetch the RSA public key
+                rsa_keys = Rsa.objects.first()
+                if not rsa_keys:
+                    return render(request, "student.html", {"error": "RSA keys not found."})
+                public_key = rsa_keys.public_key
+                
+                if not document.signature or not document.signature_data:
+                    raise Exception("Signature or signature data missing")
+                print(f"Verifying signature with data: {document.signature_data}")
+
+                # Verify the signature
+                if rsa_verify(document.signature_data, document.signature, public_key):
+                    document.is_verified = True
+                    document.save()
+                    return redirect('student')  # Refresh page after verification
+                else:
+                    print("Signature verification failed")
+                    raise Exception("Invalid signature")
+            except Documents.DoesNotExist:
+                print(f"Document not found: {document_id}")
+                return render(request, "student.html", {
+                    "error": "Document not found.",
+                    "username": username,
+                    "invoices": decrypted_invoices
+                })
+            except Exception as e:
+                print(f"Verification error: {str(e)}")
+                return render(request, "student.html", {
+                    "error": f"Verification failed: {str(e)}",
+                    "username": username,
+                    "invoices": decrypted_invoices
+                })
+
+        print(f"Rendering template with {len(decrypted_invoices)} invoices")
         return render(request, "student.html", {
             "username": username,
             "invoices": decrypted_invoices
         })
+
+    except Exception as e:
+        print(f"Error in student view: {str(e)}")
+        return render(request, "student.html", {
+            "error": f"Error processing invoices: {str(e)}",
+            "username": username
+        })
+        
+            
+
+        
+        #return render(request, "student.html", {
+            #"username": username,
+            #"invoices": decrypted_invoices
+        
     except Exception as e:
         print(f"Error fetching invoices: {e}")
         return render(request, "student.html", {"error": "Error fetching invoices."})
@@ -339,7 +409,7 @@ def pending_requests(request):
                         private_key = rsa_keys.private_key
                         
                         # Generate invoice
-                        buffer = generate_invoice(
+                        buffer,signature,signature_data = generate_invoice(
                             student_name=decrypt_des(des_key, student.name),
                             student_surname=decrypt_des(des_key, student.surname),
                             student_number=decrypt_des(des_key, student.student_number),
@@ -353,6 +423,9 @@ def pending_requests(request):
                         filename = f"invoice_{document.id}.pdf"
                         file_path = fs.save(f"invoices/{filename}", buffer)
                         document.invoice_file = file_path
+                        document.signature=signature
+                        document.signature_data=signature_data
+                        
                         document.save()  # Save the file reference to the database
                         
                         # Update database or notify student as needed
@@ -396,11 +469,11 @@ def generate_invoice(student_name, student_surname, student_number, document_typ
     # Generate signature
     data = f"{student_name} {student_surname} {student_number} {document_type} {price}"
     signature = rsa_sign(data, private_key)
-    c.drawString(100, 650, f"Digital Signature: {signature[:60]}...")
+    c.drawString(100, 650, f"Digital Signature: {signature}...")
     
     c.save()
     buffer.seek(0)
-    return buffer
+    return buffer,signature,data
 
     
     
