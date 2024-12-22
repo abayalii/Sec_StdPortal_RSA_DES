@@ -93,7 +93,7 @@
             {% if invoices %}
                 {% for invoice in invoices %}
                     <div>
-                        <p>Document: {{ invoice.document_type }}</p>
+                        <p>Invoice for : {{ invoice.document_type }}</p>
                         <a href="{{ invoice.url }}" target="_blank">Download Invoice</a>
                     </div>
                 {% endfor %}

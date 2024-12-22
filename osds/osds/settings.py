@@ -124,8 +124,8 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-MEDIA_URL = '/documents/'  # URL prefix for serving media files
-MEDIA_ROOT = os.path.join(BASE_DIR, 'documents')  # Directory where files are stored
+MEDIA_URL = '/media/'  # URL prefix for serving media files
+MEDIA_ROOT = os.path.join(BASE_DIR, 'osds','documents')  # Directory where files are stored
 
 #logger for debugging
 

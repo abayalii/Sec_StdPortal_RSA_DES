@@ -223,7 +223,7 @@ def student(request):
         for invoice in invoices:
             decrypted_invoices.append({
                 "document_type": decrypt_des(des_key, invoice.document_type),
-                "url": invoice.invoice.url  # Assuming FileField for invoices
+                "url": invoice.invoice_file.url  # Assuming FileField for invoices
             })
 
         return render(request, "student.html", {

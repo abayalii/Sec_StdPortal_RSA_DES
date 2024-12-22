@@ -14,7 +14,5 @@ urlpatterns = [
     path("users/pending-requests",views.pending_requests,name="pending_requests"),
     path("users/logout/",views.logout,name="logout")
     
-]
+]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
