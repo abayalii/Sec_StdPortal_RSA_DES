@@ -91,6 +91,13 @@
                 <button type="submit" class="btn btn-warning">Update DES Key</button>
             </form>
         </div>
+        <div class="rsa-key-update">
+            <h2>Update RSA Key Pair</h2>
+            <form method="POST" action="{% url 'update_rsa_keys' %}" class="rsa-key-form">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-warning">Update RSA Keys</button>
+            </form>
+        </div>
         <h2>Enter/Update Student Grade Records</h2>
         <form id="grade-form">
             <label for="student-number">Student Number:</label>

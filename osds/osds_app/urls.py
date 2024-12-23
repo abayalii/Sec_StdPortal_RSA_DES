@@ -12,6 +12,7 @@ urlpatterns = [
     path('users/request-document',views.request_document,name="request_document"),
     path("users/staff/",views.staff,name="staff"),
     path("users/update-des-key/",views.update_des_key,name="update_des_key"),
+    path("users/update-rsa-keys/",views.update_rsa_keys,name="update_rsa_keys"),
     path("users/pending-requests",views.pending_requests,name="pending_requests"),
     path("users/logout/",views.logout,name="logout")
     

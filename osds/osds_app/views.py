@@ -562,7 +562,58 @@ def generate_invoice(student_name, student_surname, student_number, document_typ
     return buffer,signature,data
 
     
+@role_required(['staff'])
+def update_rsa_keys(request):
+    if request.method == 'POST':
+        try:
+            print("Starting RSA key pair update process...")
+            
+            # Generate new RSA key pair
+            new_private_key, new_public_key = generate_rsa_key_pair()
+            
+            # Get existing RSA keys or create new entry
+            rsa_keys = Rsa.objects.first()
+            if rsa_keys:
+                print("Updating existing RSA keys...")
+                # Update existing keys
+                rsa_keys.private_key = new_private_key
+                rsa_keys.public_key = new_public_key
+                rsa_keys.save()
+            else:
+                print("Creating new RSA keys entry...")
+                # Create new keys entry
+                Rsa.objects.create(
+                    private_key=new_private_key,
+                    public_key=new_public_key
+                )
+            
+            # Re-sign all existing documents with new private key
+            documents = Documents.objects.filter(signature__isnull=False)
+            print(f"Found {documents.count()} documents to re-sign")
+            
+            for document in documents:
+                if document.signature_data:  # Only re-sign if there's data to sign
+                    try:
+                        # Generate new signature with new private key
+                        new_signature = rsa_sign(document.signature_data, new_private_key)
+                        document.signature = new_signature
+                        document.save()
+                        print(f"Re-signed document ID: {document.id}")
+                    except Exception as e:
+                        print(f"Error re-signing document {document.id}: {str(e)}")
+            
+            print("RSA key pair update completed successfully")
+            return render(request, "staff.html", {
+                "success": "RSA keys updated successfully. All documents have been re-signed."
+            })
+            
+        except Exception as e:
+            print(f"Error during RSA key update: {str(e)}")
+            return render(request, "staff.html", {
+                "error": f"Error updating RSA keys: {str(e)}"
+            })
     
+    return redirect('staff')    
     
     
   
