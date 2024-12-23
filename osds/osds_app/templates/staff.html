@@ -71,6 +71,12 @@
 <body>
     <header>
         <h1>Staff Dashboard</h1>
+        <div style="position: absolute; top: 20px; right: 20px;">
+            <form method="POST" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" style="background-color: #dc3545; color: white; padding: 15px 30px;font-size: 18px; border: none; border-radius: 6px; cursor: pointer;">Logout</button>
+            </form>
+        </div>
     </header>
     <div class="container">
         <!-- Add DES Key Update Form -->
