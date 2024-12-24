@@ -152,15 +152,32 @@
                 <p>No invoices found.</p>
             {% endif %}
         </div>
+        <h2>My Documents</h2>
 
-        <h2>Requested Documents</h2>
+        <!-- Add the button to show sent documents -->
+        <form method="GET" action="{% url 'view_documents' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">Show Sent Documents</button>
+        </form>
+
         <div class="documents">
-            <div class="document">
-                <p><strong>Document:</strong> Transcript</p>
-                <p><strong>Status:</strong> Ready for Download</p>
-                <button>Download Document</button>
-            </div>
+            {% if documents %}
+                {% for doc in documents %}
+                    <div class="document-card">
+                        <h3>{{ doc.type }}</h3>
+                        <p>Status: {{ doc.status }}</p>
+                        {% if doc.url %}
+                            <a href="{{ doc.url }}" class="btn btn-success" download>Download Document</a>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No documents available.</p>
+            {% endif %}
         </div>
+
+
+        
     </div>
 </body>
 </html>

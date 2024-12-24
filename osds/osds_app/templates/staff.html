@@ -98,8 +98,10 @@
                 <button type="submit" class="btn btn-warning">Update RSA Keys</button>
             </form>
         </div>
+        
         <h2>Enter/Update Student Grade Records</h2>
-        <form id="grade-form">
+        <form method="POST",action="{%url 'staff' %}">
+            {% csrf_token %}
             <label for="student-number">Student Number:</label>
             <input type="text" id="student-number" name="student-number" required>
 
@@ -193,8 +195,16 @@
                                         Download Receipt
                                     </a>
                                 {% endif %}
+                                {% if receipt.is_verified and not receipt.document_sent %}
+                                    <form method="POST" action="{% url 'send_document' %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="document_id" value="{{ receipt.document_id }}">
+                                        <button type="submit" class="btn btn-primary">Send Document</button>
+                                    </form>
+                                {% endif %}
                             {% endif %}
                         </div>
+                        
                     </div>
                 {% endfor %}
             {% else %}

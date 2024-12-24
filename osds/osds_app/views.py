@@ -1,14 +1,15 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseForbidden
 from .utils.des import decrypt_des,encrypt_des
 from .utils.rsa import rsa_sign,rsa_verify,generate_rsa_key_pair
-from django.http import FileResponse
 from django.core.files.storage import FileSystemStorage
+from django.contrib import messages
 from .models import Users, Documents,Rsa
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 import io
 import datetime
+
 
 
 
@@ -340,15 +341,99 @@ def generate_certificate(student_name, student_surname, student_number, departme
     c.drawCentredString(300, 450, f"is a registered student in")
     c.drawCentredString(300, 400, f"{department}")
     
-    # Date
-    current_date = datetime.now().strftime("%B %d, %Y")
-    c.setFont("Helvetica", 12)
-    c.drawCentredString(300, 300, f"Issued on: {current_date}")
+    
     
     c.save()
     buffer.seek(0)
     return buffer
 
+def generate_transcript(student_name, student_number, department):
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    
+    # Header
+    c.setFont("Helvetica-Bold", 24)
+    c.drawCentredString(300, 750, "Official Transcript")
+    
+    # Student info
+    c.setFont("Helvetica", 12)
+    c.drawString(50, 700, f"Student Name: {student_name}")
+    c.drawString(50, 680, f"Student Number: {student_number}")
+    c.drawString(50, 660, f"Department: {department}")
+    
+    # Add transcript content here
+    c.setFont("Helvetica", 10)
+    c.drawString(50, 620, "This is an official transcript of academic records")
+    
+    c.save()
+    buffer.seek(0)
+    return buffer
+
+@role_required(['staff'])
+def send_document(request):
+    if request.method == 'POST':
+        document_id = request.POST.get('document_id')
+        des_key = request.session.get('des_key')
+        
+        try:
+            document = Documents.objects.get(id=document_id)
+            if not document.is_receipt_verified:
+                return render(request, "staff.html", {"error": "Receipt must be verified first"})
+            
+            student = document.student
+            document_type = decrypt_des(des_key, document.document_type)
+            
+            if document_type == "transcript":
+                buffer = generate_transcript(
+                    decrypt_des(des_key, student.name),
+                    decrypt_des(des_key, student.student_number),
+                    decrypt_des(des_key, student.department)
+                )
+            if document_type=='certificate':
+                buffer = generate_certificate(
+                    decrypt_des(des_key, student.name),
+                    decrypt_des(des_key, student.surname),
+                    decrypt_des(des_key, student.student_number),
+                    decrypt_des(des_key, student.department)
+                )
+            
+            fs = FileSystemStorage()
+            filename = f"{document_type}_{document.id}.pdf"
+            file_path = fs.save(f"docs/{filename}", buffer)
+            
+            document.document_file = file_path
+            document.status = encrypt_des(des_key, "Completed")
+            document.save()
+            
+            return redirect('staff')
+            
+        except Exception as e:
+            return render(request, "staff.html", {"error": f"Error sending document: {str(e)}"})
+    
+    return redirect('staff')
+
+@role_required(['student'])
+def view_documents(request):
+    des_key = request.session.get('des_key')
+    if not des_key:
+        return render(request, "student.html", {"error": "DES key required"})
+    
+    try:
+        documents = Documents.objects.exclude(document_file='').exclude(document_file__isnull=True)
+        
+        document_list = []
+        for doc in documents:
+            document_list.append({
+                'id': doc.id,
+                'type': decrypt_des(des_key, doc.document_type),
+                'status': "completed",
+                'url': doc.document_file.url if doc.document_file else None
+            })
+        
+        return render(request, "student.html", {"documents": document_list})
+    except Exception as e:
+        return render(request, "student.html", {"error": f"Error fetching documents: {str(e)}"})
+    
 @role_required(['student'])
 def submit_receipt(request):
     if request.method == 'POST':
@@ -466,7 +551,8 @@ def view_receipts(request):
                 'document_type': decrypt_des(des_key, doc.document_type),
                 'submission_date': doc.request_date.strftime('%Y-%m-%d %H:%M:%S'),
                 'is_verified': doc.is_receipt_verified,
-                'file_url': doc.receipt_file.url if doc.receipt_file else None
+                'file_url': doc.receipt_file.url if doc.receipt_file else None,
+                'document_sent': bool(doc.document_file)
             }
             receipts.append(receipt_data)
 
@@ -515,7 +601,9 @@ def request_document(request):
 @role_required(['staff'])
 def staff(request):
     
+
     return render(request, "staff.html")
+            
 
 @role_required(['staff'])
 def update_des_key(request):
