@@ -8,6 +8,7 @@ from .models import Users, Documents,Rsa
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 import io
+import datetime
 
 
 
@@ -293,24 +294,186 @@ def student(request):
             "username": username
         })
         
-            
-
-        
-        #return render(request, "student.html", {
-            #"username": username,
-            #"invoices": decrypted_invoices
         
     except Exception as e:
         print(f"Error fetching invoices: {e}")
         return render(request, "student.html", {"error": "Error fetching invoices."})
     
+
+def generate_receipt(student_name, student_surname, student_number, document_type, price, private_key):
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    c.setFont("Helvetica", 12)
     
-    print(f"Student Page Accessed by User: {username} (ID: {id})")
+    # Receipt header
+    c.drawString(100, 750, "Payment Receipt")
+    c.drawString(100, 730, f"Student Name: {student_name} {student_surname}")
+    c.drawString(100, 710, f"Student Number: {student_number}")
+    c.drawString(100, 690, f"Document Type: {document_type}")
+    c.drawString(100, 670, f"Amount Paid: ${price}")
     
-    if not id:
-        return redirect("login")  # Kullanıcı oturum açmamışsa login sayfasına yönlendirme
     
-    return render(request, "student.html",{"username": username})
+    # Generate signature
+    data = f"{student_name} {student_surname} {student_number} {document_type} {price}"
+    signature = rsa_sign(data, private_key)
+    c.drawString(100, 630, f"Digital Signature: {signature}...")
+    
+    c.save()
+    buffer.seek(0)
+    return buffer, signature, data
+
+def generate_certificate(student_name, student_surname, student_number, department):
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    c.setFont("Helvetica-Bold", 24)
+    
+    # Title
+    c.drawCentredString(300, 700, "Certificate of Enrollment")
+    
+    # Content
+    c.setFont("Helvetica", 16)
+    c.drawCentredString(300, 600, f"This is to certify that")
+    c.setFont("Helvetica-Bold", 18)
+    c.drawCentredString(300, 550, f"{student_name} {student_surname}")
+    c.setFont("Helvetica", 16)
+    c.drawCentredString(300, 500, f"Student Number: {student_number}")
+    c.drawCentredString(300, 450, f"is a registered student in")
+    c.drawCentredString(300, 400, f"{department}")
+    
+    # Date
+    current_date = datetime.now().strftime("%B %d, %Y")
+    c.setFont("Helvetica", 12)
+    c.drawCentredString(300, 300, f"Issued on: {current_date}")
+    
+    c.save()
+    buffer.seek(0)
+    return buffer
+
+@role_required(['student'])
+def submit_receipt(request):
+    if request.method == 'POST':
+        des_key = request.session.get('des_key')
+        document_id = request.POST.get('document_id')
+        
+
+        if not all([des_key, document_id]):
+            return render(request, "student.html", {"error": "Missing required information."})
+
+        try:
+            document = Documents.objects.get(id=document_id)
+            student = document.student
+
+            # Verify this is the correct student
+            if student.id != request.session.get('id'):
+                return HttpResponseForbidden("Not authorized")
+
+            # Get the price from the invoice (you'll need to extract this from the invoice PDF or store it separately)
+            # For now, we'll use the same logic as invoice generation
+            if decrypt_des(des_key, document.document_type) == "transcript":
+                price = 200
+            elif decrypt_des(des_key, document.document_type) == "certificate":
+                price = 50
+            else:
+                price = 100
+
+            # Fetch RSA private key
+            rsa_keys = Rsa.objects.first()
+            if not rsa_keys:
+                return render(request, "student.html", {"error": "RSA keys not found."})
+            private_key = rsa_keys.private_key
+
+            # Generate receipt
+            buffer, signature, signature_data = generate_receipt(
+                student_name=decrypt_des(des_key, student.name),
+                student_surname=decrypt_des(des_key, student.surname),
+                student_number=decrypt_des(des_key, student.student_number),
+                document_type=decrypt_des(des_key, document.document_type),
+                price=price,
+                private_key=private_key
+            )
+
+            # Save receipt
+            fs = FileSystemStorage()
+            filename = f"receipt_{document.id}.pdf"
+            file_path = fs.save(f"receipts/{filename}", buffer)
+            
+            # Update document record
+            document.receipt_file = file_path
+            document.receipt_signature = signature
+            document.receipt_signature_data = signature_data
+            document.status = "Receipt Submitted"
+            document.save()
+            
+            invoices = Documents.objects.filter(student=student)
+            return render(request, "student.html", {"invoices": invoices})
+     
+
+        except Exception as e:
+            return render(request, "student.html", {"error": f"Error submitting receipt: {str(e)}"})
+
+    return redirect('student')
+
+@role_required(['staff'])
+def verify_receipt(request):
+    if request.method == 'POST':
+        document_id = request.POST.get('document_id')
+        
+        try:
+            document = Documents.objects.get(id=document_id)
+            
+            # Fetch the RSA public key
+            rsa_keys = Rsa.objects.first()
+            if not rsa_keys:
+                return render(request, "staff.html", {"error": "RSA keys not found."})
+            public_key = rsa_keys.public_key
+            
+            if not document.receipt_signature or not document.receipt_signature_data:
+                raise Exception("Receipt signature or signature data missing")
+
+            # Verify the signature
+            if rsa_verify(document.receipt_signature_data, document.receipt_signature, public_key):
+                document.is_receipt_verified = True
+                document.save()
+                return redirect('staff')
+            else:
+                raise Exception("Invalid receipt signature")
+
+        except Documents.DoesNotExist:
+            return render(request, "staff.html", {"error": "Document not found."})
+        except Exception as e:
+            return render(request, "staff.html", {"error": f"Receipt verification failed: {str(e)}"})
+
+    return redirect('staff')
+
+@role_required(['staff'])
+def view_receipts(request):
+    des_key = request.session.get('des_key')
+    if not des_key:
+        return render(request, "staff.html", {"error": "DES key is required to decrypt data."})
+
+    try:
+        # Get all documents with receipts
+        documents_with_receipts = Documents.objects.exclude(receipt_file='').exclude(receipt_file__isnull=True)
+        
+        receipts = []
+        for doc in documents_with_receipts:
+            student = doc.student
+            receipt_data = {
+                'document_id': doc.id,
+                'student_name': decrypt_des(des_key, student.name),
+                'student_surname': decrypt_des(des_key, student.surname),
+                'student_number': decrypt_des(des_key, student.student_number),
+                'document_type': decrypt_des(des_key, doc.document_type),
+                'submission_date': doc.request_date.strftime('%Y-%m-%d %H:%M:%S'),
+                'is_verified': doc.is_receipt_verified,
+                'file_url': doc.receipt_file.url if doc.receipt_file else None
+            }
+            receipts.append(receipt_data)
+
+        return render(request, "staff.html", {"receipts": receipts})
+    except Exception as e:
+        print(f"Error fetching receipts: {e}")
+        return render(request, "staff.html", {"error": f"Error fetching receipts: {str(e)}"})
 
 @role_required(['student'])
 def request_document(request):
@@ -348,10 +511,6 @@ def request_document(request):
     
     return redirect('student')
 
-@role_required(['student'])
-def submit_receipt(request):
-    
-    return redirect('student')
 
 @role_required(['staff'])
 def staff(request):

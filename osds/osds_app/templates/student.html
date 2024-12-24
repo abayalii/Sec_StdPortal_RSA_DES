@@ -80,6 +80,17 @@
     </header>
     <div class="container">
         <h2>Request a Document</h2>
+        {% if success %}
+        <script>
+            alert("{{ success }}");
+        </script>
+        {% endif %}
+
+        {% if error %}
+        <script>
+            alert("{{ error }}");
+        </script>
+        {% endif %}
         <form id="request-document" method="POST" action="{%url 'request_document'%}">
             {% csrf_token %}
             <label for="document-type">Document Type:</label>
@@ -114,8 +125,27 @@
                                     Download Invoice
                                 </a>
                             {% endif %}
+                            
+                            
+                            {% if not invoice.receipt_file %}
+                                <form method="post" action="{% url 'submit_receipt' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="document_id" value="{{ invoice.id }}">
+                                    <button type="submit" class="btn btn-primary">Submit Receipt</button>
+                                </form>
+                            {% else %}
+                                <p>Receipt submitted - awaiting verification</p>
+                                {% if invoice.receipt_verified %}
+                                    <p>Receipt verified</p>
+                                    <a href="{{ invoice.receipt_file.url }}" class="btn btn-success" download>
+                                        Download Receipt
+                                    </a>
+                              
+                                {% endif %}
+                            {% endif %}
                         {% endif %}
                     </div>
+                    
                 </div>
                 {% endfor %}
             {% else %}

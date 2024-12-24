@@ -113,34 +113,92 @@
         </form>
 
         <h2>Student Requests</h2>
+
         <form method="GET" action="{% url 'pending_requests' %}" style="margin-bottom: 20px;">
             <button type="submit">Load Pending Requests</button>
         </form>
+
+
         <div class="requests">
             {% if requests %}
                 {% for request in requests %}
                     <div class="request">
-                        <form id="pending_requests" method="POST" action="{%url 'pending_requests' %}">
+                        <form method="POST" action="{% url 'pending_requests' %}">
                             {% csrf_token %}
                             <p><strong>Student Name:</strong> {{ request.student_name }} {{ request.student_surname }}</p>
                             <p><strong>Student Number:</strong> {{ request.student_number }}</p>
                             <p><strong>Request Type:</strong> {{ request.document_type }}</p>
                             <p><strong>Status:</strong> {{ request.status }}</p>
-                            <p><strong>Request Date:</strong> {{ request.request_date }}</p>
-                        <!-- <input type="hidden" name="des_key" value="{{ request.session.des_key }}">-->
-                            <input type="hidden" name="request_id" value="{{ request.id }}">   
-                            <button type="submit" name="action" value="prepare">Prepare Document</button>
-                            <button type="submit" name="action" value="invoice">Send Invoice</button>
+                            
+                            <div class="invoice-actions" style="margin-top: 10px;">
+                                <input type="hidden" name="request_id" value="{{ request.id }}">   
+                                <button type="submit" name="action" value="invoice" class="btn btn-info">Send Invoice</button>
+                            </div>
+                            <div class="receipt-actions">
+                                {% if request.receipt_file %}
+                                    {% if not request.is_receipt_verified %}
+                                        <form method="POST" action="{% url 'verify_receipt' %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="document_id" value="{{ request.id }}">
+                                            <button type="submit" class="btn btn-warning">Verify Receipt</button>
+                                        </form>
+                                    {% else %}
+                                        <span class="badge badge-success">Receipt Verified</span>
+                                        <a href="{{ request.receipt_file.url }}" class="btn btn-success" download>
+                                            Download Receipt
+                                        </a>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                            
+                            
                         </form>
                     </div>
                 {% endfor %}
             {% else %}
-                <p></p>
+                <p>No pending requests.</p>
             {% endif %}
-            {% if error %}
-                <div class="error" style="color: red; margin-top: 10px;">
-                    {{ error }}
-                </div>
+        </div>
+        <h2>Submitted Receipts</h2>
+        <form method="GET" action="{% url 'view_receipts' %}" style="margin-bottom: 20px;">
+            <button type="submit" class="btn btn-primary">Load Receipts</button>
+        </form>
+
+        <div class="receipts">
+            {% if receipts %}
+                {% for receipt in receipts %}
+                    <div class="receipt-card" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;">
+                        <p><strong>Student Name:</strong> {{ receipt.student_name }} {{ receipt.student_surname }}</p>
+                        <p><strong>Student Number:</strong> {{ receipt.student_number }}</p>
+                        <p><strong>Document Type:</strong> {{ receipt.document_type }}</p>
+                        <p><strong>Submission Date:</strong> {{ receipt.submission_date }}</p>
+                        <p><strong>Status:</strong> 
+                            {% if receipt.is_verified %}
+                                <span style="color: green;">Verified</span>
+                            {% else %}
+                                <span style="color: orange;">Pending Verification</span>
+                            {% endif %}
+                        </p>
+                        
+                        <div class="receipt-actions" style="margin-top: 10px;">
+                            {% if not receipt.is_verified %}
+                                <form method="POST" action="{% url 'verify_receipt' %}" style="display: inline-block; margin-right: 10px;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="document_id" value="{{ receipt.document_id }}">
+                                    <button type="submit" class="btn btn-warning">Verify Receipt</button>
+                                </form>
+                            {% else %}
+                                {% if receipt.file_url %}
+                                    <a href="{{ receipt.file_url }}" class="btn btn-info" download>
+                                        Download Receipt
+                                    </a>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No receipts submitted.</p>
             {% endif %}
         </div>
 
